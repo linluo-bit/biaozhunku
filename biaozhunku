@@ -1,0 +1,3 @@
+GPIO_ResetBits(GPIOB,GPIO_Pin_0); //置0
+GPIO_SetBits(GPIOB,GPIO_Pin_0); //置1
+GPIO_ReadInputDataBit(GPIOA, SW1); //读端口
