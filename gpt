@@ -1,0 +1,131 @@
+#include "stm32f10x.h"
+#include "ds18b20.h" // DS18B20库文件，需要根据您的具体情况添加和配置
+
+#define PWM_PIN GPIO_Pin_1
+#define PWM_PORT GPIOA
+
+// 定义其他引脚和端口
+
+// 定义全局变量
+float targetSpeed = 0.0f; // 目标速度
+float actualSpeed = 0.0f; // 实际速度
+float speedError = 0.0f; // 速度误差
+
+// 声明函数
+void initializePWM(void);
+void initializeTemperatureSensor(void);
+void initializeSpeedMeasurement(void);
+void setMotorSpeed(float speed);
+void setOverheatProtection(float threshold);
+void setUndervoltageProtection(float threshold);
+void setTargetSpeed(float speed);
+void calculateSpeedError(void);
+void startMotor(float startRate);
+
+int main(void) {
+  // 初始化代码
+  initializePWM();
+  initializeTemperatureSensor();
+  initializeSpeedMeasurement();
+  
+  // 设置初始参数
+  setOverheatProtection(80.0f); // 设置过热保护阈值为80摄氏度
+  setUndervoltageProtection(10.0f); // 设置欠压保护阈值为10伏特
+  setTargetSpeed(100.0f); // 设置目标速度为100转/分钟
+  
+  while(1) {
+    // 检测温度，如果超过阈值则执行相应操作
+    float temperature = readTemperature(); // 从DS18B20读取温度值
+    if (temperature > 80.0f) {
+      // 执行过热保护操作
+      // ...
+    }
+    
+    // 检测电压，如果低于阈值则执行相应操作
+    float voltage = readVoltage(); // 读取电压值
+    if (voltage < 10.0f) {
+      // 执行欠压保护操作
+      // ...
+    }
+    
+    // 根据控制方式调整电机速度
+    // 电位器调速
+    if (checkPotentiometer()) {
+      float speed = readPotentiometerValue(); // 读取电位器的值，范围根据您的电位器而定
+      setMotorSpeed(speed);
+    }
+    // 按键调速
+    else if (checkButton()) {
+      float speed = readButtonValue(); // 读取按键的值，根据您的按键而定
+      setMotorSpeed(speed);
+    }
+    
+    // 测量实际速度并计算误差
+    calculateSpeedError();
+    
+    // 在显示屏上显示目标速度和实际速度
+    displaySpeed(targetSpeed, actualSpeed);
+    
+    // 控制电机启动速率
+    if (motorNotRunning()) {
+      startMotor(0.1f); // 设置启动速率为0.1转/分钟
+    }
+    
+    // 执行其他任务
+    // ...
+  }
+}
+
+void initializePWM(void) {
+  GPIO_InitTypeDef GPIO_InitStructure;
+  
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+  
+  GPIO_InitStructure.GPIO_Pin = PWM_PIN;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_Init(PWM_PORT, &GPIO_InitStructure);
+  
+  // 配置定时器和通道，生成PWM信号
+  // ...
+}
+
+void initializeTemperatureSensor(void) {
+  // 初始化DS18B20温度传感器
+  // ...
+}
+
+void initializeSpeedMeasurement(void) {
+  // 初始化测量电机速度的相关设置
+  // ...
+}
+
+void setMotorSpeed(float speed) {
+  // 设置电机速度
+  // ...
+}
+
+void setOverheatProtection(float threshold) {
+  // 设置过热保护阈值
+  // ...
+}
+
+void setUndervoltageProtection(float threshold) {
+  // 设置欠压保护阈值
+  // ...
+}
+
+void setTargetSpeed(float speed) {
+  // 设置目标速度
+  // ...
+}
+
+void calculateSpeedError(void) {
+  // 计算速度误差
+  // ...
+}
+
+void startMotor(float startRate) {
+  // 执行软启动功能，根据启动速率逐渐增加电机速度
+  // ...
+}
