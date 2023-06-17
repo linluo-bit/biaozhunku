@@ -1,3 +1,7 @@
 GPIO_ResetBits(GPIOA,GPIO_Pin_0); //置0
+GPIO_WriteBit(GPIOA, GPIO_Pin_0, Bit_RESET);
+
 GPIO_SetBits(GPIOA,GPIO_Pin_0); //置1
+GPIO_WriteBit(GPIOA, GPIO_Pin_0, Bit_SET);
+
 GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_0 ); //读端口
