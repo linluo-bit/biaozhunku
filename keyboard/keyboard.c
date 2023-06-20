@@ -1,16 +1,12 @@
-#include "stm32f10x.h"
+#include "keyboard.h"
 #include "delay.h"
+#include "stm32f10x_tim.h"
 
-#define ROWS 4
-#define COLS 4
-
-// 定义行和列的引脚
 GPIO_TypeDef* ROW_PORT[ROWS] = {GPIOA, GPIOA, GPIOA, GPIOA};
 const uint16_t ROW_PIN[ROWS] = {GPIO_Pin_7, GPIO_Pin_6, GPIO_Pin_5, GPIO_Pin_4};
 GPIO_TypeDef* COL_PORT[COLS] = {GPIOA, GPIOA, GPIOA, GPIOA};
-const uint16_t COL_PIN[COLS] = {GPIO_Pin_3,GPIO_Pin_2, GPIO_Pin_1, GPIO_Pin_0};
+const uint16_t COL_PIN[COLS] = {GPIO_Pin_3, GPIO_Pin_2, GPIO_Pin_1, GPIO_Pin_0};
 
-// 矩阵键盘映射表
 char keymap[ROWS][COLS] = {
     {'1', '2', '3', 'A'},
     {'4', '5', '6', 'B'},
@@ -18,7 +14,7 @@ char keymap[ROWS][COLS] = {
     {'*', '0', '#', 'D'}
 };
 
-void GPIO_Configuration(void)
+void GPIO_Config(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
 
@@ -37,23 +33,45 @@ void GPIO_Configuration(void)
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 }
 
-char read_key(void)
+void TIM2_Configuration(void)
+{
+    TIM_TimeBaseInitTypeDef TIM_BaseStruct;
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+
+    TIM_BaseStruct.TIM_Prescaler = 7200 - 1;  // 设置预分频器值，适配系统时钟频率
+    TIM_BaseStruct.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_BaseStruct.TIM_Period = 100 - 1;  // 设置定时器溢出时间，控制扫描的频率
+
+    TIM_BaseStruct.TIM_ClockDivision = TIM_CKD_DIV1;
+    TIM_BaseStruct.TIM_RepetitionCounter = 0;
+
+    TIM_TimeBaseInit(TIM2, &TIM_BaseStruct);
+
+    TIM_Cmd(TIM2, ENABLE);
+}
+
+void Keyboard_Init(void)
+{
+    GPIO_Config();
+    TIM3_Configuration();
+}
+
+char Keyboard_GetKey(void)
 {
     uint8_t row, col;
+    char key = '\0';
 
     // 扫描行
     for (row = 0; row < ROWS; row++) {
         GPIO_ResetBits(ROW_PORT[row], ROW_PIN[row]);
-
-        // 延时一段时间，以确保行引脚稳定为低电平
-        delay_ms(1);
+        delay_us(10); // 延时确保行引脚稳定为低电平
 
         // 检测列
         for (col = 0; col < COLS; col++) {
             if (GPIO_ReadInputDataBit(COL_PORT[col], COL_PIN[col]) == Bit_RESET) {
                 // 按键按下
                 // 延时一段时间，以避免按键抖动
-                delay_ms(10);
+                delay_ms(5);
 
                 // 再次检测确认按键是否仍然按下
                 if (GPIO_ReadInputDataBit(COL_PORT[col], COL_PIN[col]) == Bit_RESET) {
@@ -69,5 +87,5 @@ char read_key(void)
     }
 
     // 没有按键按下
-    return '\0';
+    return key;
 }
