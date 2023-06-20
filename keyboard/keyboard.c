@@ -53,7 +53,7 @@ void TIM2_Configuration(void)
 void Keyboard_Init(void)
 {
     GPIO_Config();
-    TIM3_Configuration();
+    TIM2_Configuration();
 }
 
 char Keyboard_GetKey(void)
